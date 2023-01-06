@@ -7,7 +7,7 @@
 
 //Constants
 #define SCREEN_WIDTH 320
-#define SCREEN_HEIGHT 240
+#define SCREEN_HEIGHT 320
 #define MAP_N 1024
 #define SCALE_FACTOR 70.0
 
@@ -15,14 +15,24 @@
 #define PACK_PIXEL(r, g, b) ( ((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3) )
 #define DRAW_PIXEL(x, y, color) \
 	if((x >= 0) && (x < SCREEN_HEIGHT) && (y >= 0) && (y < SCREEN_WIDTH)) \
-		vram_s[(y * SCREEN_WIDTH) + x] = color;
+		backbuffer[(y * SCREEN_WIDTH) + x] = color;
 
+
+///////////////////////////////////////////////////////////////////////////////
+// Double Buffers
+///////////////////////////////////////////////////////////////////////////////
+
+uint16_t framebuffer_1[SCREEN_WIDTH * SCREEN_HEIGHT];
+uint16_t framebuffer_2[SCREEN_WIDTH * SCREEN_HEIGHT];
+uint16_t* backbuffer;
+int currentBuffer;
 
 ///////////////////////////////////////////////////////////////////////////////
 // Buffers for Heightmap and Colormap
 ///////////////////////////////////////////////////////////////////////////////
 uint8_t* heightmap = NULL;   // Buffer/array to hold height values (1024*1024)
 uint8_t* colormap  = NULL;   // Buffer/array to hold color values  (1024*1024)
+uint16_t* pixelmap = NULL;
 
 ///////////////////////////////////////////////////////////////////////////////
 // Camera struct type declaration
@@ -93,11 +103,11 @@ int processinput() {
     }
 
     if(state->buttons & CONT_DPAD_LEFT){
-        camera.angle -= 0.01;
+        camera.angle -= 0.02;
     }
 
     if(state->buttons & CONT_DPAD_RIGHT){
-        camera.angle += 0.01;
+        camera.angle += 0.02;
     }
 
     if(state->ltrig)
@@ -109,13 +119,42 @@ int processinput() {
     return 1;
 }
 
-int clearScreen(){
-	int pixelNumber;
-	for(pixelNumber = 0; pixelNumber < SCREEN_HEIGHT*SCREEN_WIDTH; pixelNumber++){
-        vram_s[pixelNumber] = PACK_PIXEL(36, 36, 56);
-	}
-	
-	return 1;
+//TODO Segregar e comentar em um novo arquivo todo o double buffer
+void dis_initializeDoublebuffer(){
+    memset(framebuffer_1,'\0', sizeof(framebuffer_1));
+    memset(framebuffer_2,'\0', sizeof(framebuffer_2));
+
+    backbuffer = framebuffer_1;
+    currentBuffer = 1;
+}
+
+//TODO Segregar e comentar em um novo arquivo todo o double buffer
+void dis_flipBuffer(){
+    if(currentBuffer == 1){
+        currentBuffer = 2;
+        backbuffer = framebuffer_2;
+        //vid_waitvbl();
+        sq_cpy(vram_s, framebuffer_1, sizeof(framebuffer_1));
+    } else {
+        currentBuffer = 1;
+        backbuffer = framebuffer_1;
+        //vid_waitvbl();
+        sq_cpy(vram_s, framebuffer_2, sizeof(framebuffer_2));
+    }
+}
+
+//TODO Segregar e comentar em um novo arquivo todo o double buffer
+void dis_clearBackBuffer(int r, int g, int b){
+    memset(backbuffer, PACK_PIXEL(r, g, b), sizeof(framebuffer_1));
+}
+
+//TODO jogar isso no GIF.H, usar width e height ao invez de usar 1024*1024
+void gifUnpalleteColors(uint8_t* colormap, uint8_t* palette, uint16_t* pixelmap){
+    for(int i = 0; i < 1024*1024; i++){
+        pixelmap[i] = PACK_PIXEL(palette[3 * colormap[i] + 0] * 3
+                                ,palette[3 * colormap[i] + 1] * 3
+                                ,palette[3 * colormap[i] + 2] * 3);
+    }
 }
 
 /* romdisk */
@@ -131,18 +170,24 @@ int main(void) {
     //set our video mode
     vid_set_mode(DM_320x240, PM_RGB565);
 
+    //initialize software double buffer
+    dis_initializeDoublebuffer();
+
     // Declare an array to hold the max. number of possible colors (*3 for RGB)
     uint8_t palette[256 * 3];
     int palsize;
 
     // Load the colormap, heightmap, and palette from the external GIF files
+    // TODO Melhorar para pegar o tamanho do gif dinamicamente
+    // TODO segregar o tratamento de cor em outra lib
     colormap = loadgif("/rd/gif/map0.color.gif", NULL, NULL, &palsize, palette);
     heightmap = loadgif("/rd/gif/map0.height.gif", NULL, NULL, NULL, NULL);
+    pixelmap = (uint16_t*) malloc(sizeof(uint16_t) * 1024 * 1024);
+    gifUnpalleteColors(colormap, palette, pixelmap);
 
     //Main Loop
     while(!quit) 
     {
-        vid_waitvbl();
         processinput();
 
         float sinangle = sin(camera.angle);
@@ -156,7 +201,6 @@ int main(void) {
         float prx = cosangle * camera.zfar - sinangle * camera.zfar;
         float pry = sinangle * camera.zfar + cosangle * camera.zfar;
 
-        clearScreen(36,36,56);
         // Loop 320 rays from left to right
         for (int i = 0; i < SCREEN_WIDTH; i++) {
             float deltax = (plx + (prx - plx) / SCREEN_WIDTH * i) / camera.zfar;
@@ -184,15 +228,14 @@ int main(void) {
                 if (projheight < tallestheight) {
                     // Draw pixels from previous max-height until the new projected height
                     for (int y = projheight; y < tallestheight; y++) {
-                        uint8_t color_index = colormap[mapoffset];
-                        DRAW_PIXEL(i, y, PACK_PIXEL(palette[3 * color_index + 0]
-                                                   ,palette[3 * color_index + 1]
-                                                   ,palette[3 * color_index + 2]));
+                        DRAW_PIXEL(i, y, pixelmap[mapoffset]);
                     }
                     tallestheight = projheight;
                 }
             }
         }
+        dis_flipBuffer();
+        dis_clearBackBuffer(0, 0x82, 0xFF);
     }
 
     return 0;
