@@ -6,6 +6,9 @@
 #include "gif.h"
 #include "display.h"
 
+//TODOs
+//Create an FPS counter
+
 //Constants
 //TODO move screen info to display.c
 #define SCREEN_WIDTH 320
@@ -107,7 +110,7 @@ int processinput() {
 }
 
 //TODO jogar isso no GIF.H, usar width e height ao invez de usar 1024*1024
-void gifUnpalleteColors(uint8_t* colormap, uint8_t* palette, uint16_t* pixelmap){
+void gifPalletedToDirectColors(uint8_t* colormap, uint8_t* palette, uint16_t* pixelmap){
     for(int i = 0; i < 1024*1024; i++){
         pixelmap[i] = PACK_PIXEL(palette[3 * colormap[i] + 0] * 3
                                 ,palette[3 * colormap[i] + 1] * 3
@@ -141,7 +144,7 @@ int main(void) {
     colormap = loadgif("/rd/gif/map0.color.gif", NULL, NULL, &palsize, palette);
     heightmap = loadgif("/rd/gif/map0.height.gif", NULL, NULL, NULL, NULL);
     pixelmap = (uint16_t*) malloc(sizeof(uint16_t) * 1024 * 1024);
-    gifUnpalleteColors(colormap, palette, pixelmap);
+    gifPalletedToDirectColors(colormap, palette, pixelmap);
 
     //Main Loop
     while(!quit) 

@@ -1,6 +1,12 @@
 {
     "files.associations": {
         "stddef.h": "c",
-        "display.h": "c"
+        "display.h": "c",
+        "kos.h": "c",
+        "stdlib.h": "c",
+        "fs_ramdisk.h": "c",
+        "fs.h": "c",
+        "stdio.h": "c",
+        "malloc.h": "c"
     }
 }

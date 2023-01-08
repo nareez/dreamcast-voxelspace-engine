@@ -1,6 +1,6 @@
 #!/bin/sh
-dcbuild clean
-dcbuild make
-dcbuild bin main.elf
-dcbuild ip
-dcbuild cdi
+./dcbuild9.sh clean
+./dcbuild9.sh make
+./dcbuild9.sh bin main.elf
+./dcbuild9.sh ip
+./dcbuild9.sh cdi

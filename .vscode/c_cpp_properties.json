@@ -1,0 +1,21 @@
+{
+    "configurations": [
+        {
+            "name": "Mac",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "/Users/luiz/Workspace/KallistiOS/**"
+            ],
+            "defines": [],
+            "macFrameworkPath": [
+                "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks"
+            ],
+            "compilerPath": "/usr/bin/clang",
+            "cStandard": "c99",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "macos-clang-arm64",
+            "configurationProvider": "ms-vscode.cpptools"
+        }
+    ],
+    "version": 4
+}

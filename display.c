@@ -9,8 +9,8 @@ uint32_t framebufferSize;
  * parameter: size of framebuffer */
 void dis_initializeDoublebuffer(uint32_t bufferSize){
     framebufferSize = bufferSize * sizeof(uint16_t);
-    framebuffer_1 = malloc(framebufferSize);
-    framebuffer_2 = malloc(framebufferSize);
+    framebuffer_1 = (uint16_t*) malloc(framebufferSize);
+    framebuffer_2 = (uint16_t*) malloc(framebufferSize);
     memset(framebuffer_1,'\0', framebufferSize);
     memset(framebuffer_2,'\0', framebufferSize);
 
