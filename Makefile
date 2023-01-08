@@ -4,7 +4,7 @@ include $(KOS_BASE)/Makefile.rules
 
 export CFLAGS = -std=c99
 
-OBJS = main.o 
+OBJS = main.o display.o
 	
 clean:
 	-rm -f main.elf $(OBJS)

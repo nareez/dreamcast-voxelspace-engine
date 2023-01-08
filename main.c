@@ -4,28 +4,15 @@
 #include <stdint.h>
 #include <math.h>
 #include "gif.h"
+#include "display.h"
 
 //Constants
+//TODO move screen info to display.c
 #define SCREEN_WIDTH 320
 #define SCREEN_HEIGHT 320
 #define MAP_N 1024
 #define SCALE_FACTOR 70.0
 
-//Macros
-#define PACK_PIXEL(r, g, b) ( ((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3) )
-#define DRAW_PIXEL(x, y, color) \
-	if((x >= 0) && (x < SCREEN_HEIGHT) && (y >= 0) && (y < SCREEN_WIDTH)) \
-		backbuffer[(y * SCREEN_WIDTH) + x] = color;
-
-
-///////////////////////////////////////////////////////////////////////////////
-// Double Buffers
-///////////////////////////////////////////////////////////////////////////////
-
-uint16_t framebuffer_1[SCREEN_WIDTH * SCREEN_HEIGHT];
-uint16_t framebuffer_2[SCREEN_WIDTH * SCREEN_HEIGHT];
-uint16_t* backbuffer;
-int currentBuffer;
 
 ///////////////////////////////////////////////////////////////////////////////
 // Buffers for Heightmap and Colormap
@@ -119,35 +106,6 @@ int processinput() {
     return 1;
 }
 
-//TODO Segregar e comentar em um novo arquivo todo o double buffer
-void dis_initializeDoublebuffer(){
-    memset(framebuffer_1,'\0', sizeof(framebuffer_1));
-    memset(framebuffer_2,'\0', sizeof(framebuffer_2));
-
-    backbuffer = framebuffer_1;
-    currentBuffer = 1;
-}
-
-//TODO Segregar e comentar em um novo arquivo todo o double buffer
-void dis_flipBuffer(){
-    if(currentBuffer == 1){
-        currentBuffer = 2;
-        backbuffer = framebuffer_2;
-        //vid_waitvbl();
-        sq_cpy(vram_s, framebuffer_1, sizeof(framebuffer_1));
-    } else {
-        currentBuffer = 1;
-        backbuffer = framebuffer_1;
-        //vid_waitvbl();
-        sq_cpy(vram_s, framebuffer_2, sizeof(framebuffer_2));
-    }
-}
-
-//TODO Segregar e comentar em um novo arquivo todo o double buffer
-void dis_clearBackBuffer(int r, int g, int b){
-    memset(backbuffer, PACK_PIXEL(r, g, b), sizeof(framebuffer_1));
-}
-
 //TODO jogar isso no GIF.H, usar width e height ao invez de usar 1024*1024
 void gifUnpalleteColors(uint8_t* colormap, uint8_t* palette, uint16_t* pixelmap){
     for(int i = 0; i < 1024*1024; i++){
@@ -171,7 +129,7 @@ int main(void) {
     vid_set_mode(DM_320x240, PM_RGB565);
 
     //initialize software double buffer
-    dis_initializeDoublebuffer();
+    dis_initializeDoublebuffer(SCREEN_WIDTH*SCREEN_HEIGHT);
 
     // Declare an array to hold the max. number of possible colors (*3 for RGB)
     uint8_t palette[256 * 3];
