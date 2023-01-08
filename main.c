@@ -13,13 +13,12 @@
 #define MAP_N 1024
 #define SCALE_FACTOR 70.0
 
-
 ///////////////////////////////////////////////////////////////////////////////
 // Buffers for Heightmap and Colormap
 ///////////////////////////////////////////////////////////////////////////////
 uint8_t* heightmap = NULL;   // Buffer/array to hold height values (1024*1024)
 uint8_t* colormap  = NULL;   // Buffer/array to hold color values  (1024*1024)
-uint16_t* pixelmap = NULL;
+uint16_t* pixelmap = NULL;   // Buffer/array to hold pixel color values (1024*1024)
 
 ///////////////////////////////////////////////////////////////////////////////
 // Camera struct type declaration
@@ -58,45 +57,35 @@ int processinput() {
         printf("Error reading controller\n");
         return -1;
     }
-
     if(state->buttons & CONT_START){
         return 0;
     }
-
     if(state->buttons & CONT_A){
         camera.height--;
     }
-
     if(state->buttons & CONT_B){
         camera.horizon += 1.5;
     }
-
     if((state->buttons & CONT_X)) {
         camera.horizon -= 1.5;
     }
-
     if((state->buttons & CONT_Y)) {
         camera.height++;
     }
-
     if(state->buttons & CONT_DPAD_UP){
         camera.x += cos(camera.angle);
         camera.y += sin(camera.angle);
     }
-
     if(state->buttons & CONT_DPAD_DOWN){
         camera.x -= cos(camera.angle);
         camera.y -= sin(camera.angle);
     }
-
     if(state->buttons & CONT_DPAD_LEFT){
         camera.angle -= 0.02;
     }
-
     if(state->buttons & CONT_DPAD_RIGHT){
         camera.angle += 0.02;
     }
-
     if(state->ltrig)
         return 0;
 
@@ -107,6 +96,7 @@ int processinput() {
 }
 
 //TODO ver onde colocar essa function
+// Convert palleted colors to pixel color map
 uint16_t* gifPalletedToDirectColors(uint8_t* colormap, uint8_t* palette, int gifWidth, int height){
     uint16_t* pixelmap = (uint16_t*) malloc(sizeof(uint16_t) * gifWidth * height);
     int brightnessLevel = 3;
@@ -128,23 +118,20 @@ int main(void) {
     //init kos
     pvr_init_defaults();
 
-    //set our video mode
-    //TODO melhorar a inicializacao de video
-    vid_set_mode(DM_320x240, PM_RGB565);
-
-    //initialize software double buffer
-    dis_initializeDoublebuffer();
+    //initialize display
+    dis_initializeDisplay();
 
     // Declare an array to hold the max. number of possible colors (*3 for RGB)
     uint8_t palette[256 * 3];
     int palsize;
 
     // Load the colormap, heightmap, and palette from the external GIF files
-    // TODO segregar o tratamento de cor em outra lib
     int gifWidth;
     int gifHeight;
     colormap = loadgif("/rd/gif/map0.color.gif", &gifWidth, &gifHeight, &palsize, palette);
     heightmap = loadgif("/rd/gif/map0.height.gif", NULL, NULL, NULL, NULL);
+    // TODO segregar o tratamento de cor em outra lib
+    // Convert palleted colors to pixel color map
     pixelmap = gifPalletedToDirectColors(colormap, palette, gifWidth, gifHeight);
 
     //Main Loop

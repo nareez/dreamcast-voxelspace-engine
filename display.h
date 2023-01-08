@@ -16,6 +16,7 @@
 uint16_t* backbuffer;
 
 //Functions
+void dis_initializeDisplay(void);
 void dis_initializeDoublebuffer(void);
 void dis_flipBuffer(void);
 void dis_clearBackBuffer(int r, int g, int b);

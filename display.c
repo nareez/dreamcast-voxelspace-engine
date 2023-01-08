@@ -18,6 +18,15 @@ void dis_initializeDoublebuffer(){
     currentBuffer = 1;
 }
 
+void dis_initializeDisplay(){
+    //set our video mode
+    vid_set_mode(DM_320x240, PM_RGB565);
+
+    //initialize software double buffer
+    dis_initializeDoublebuffer();
+}
+
+
 //flip double buffer
 void dis_flipBuffer(){
     // Store Queue Trasnfer
