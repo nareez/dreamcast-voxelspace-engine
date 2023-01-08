@@ -10,9 +10,6 @@
 //Create an FPS counter
 
 //Constants
-//TODO move screen info to display.c
-#define SCREEN_WIDTH 320
-#define SCREEN_HEIGHT 320
 #define MAP_N 1024
 #define SCALE_FACTOR 70.0
 
@@ -109,13 +106,16 @@ int processinput() {
     return 1;
 }
 
-//TODO jogar isso no GIF.H, usar width e height ao invez de usar 1024*1024
-void gifPalletedToDirectColors(uint8_t* colormap, uint8_t* palette, uint16_t* pixelmap){
-    for(int i = 0; i < 1024*1024; i++){
-        pixelmap[i] = PACK_PIXEL(palette[3 * colormap[i] + 0] * 3
-                                ,palette[3 * colormap[i] + 1] * 3
-                                ,palette[3 * colormap[i] + 2] * 3);
+//TODO ver onde colocar essa function
+uint16_t* gifPalletedToDirectColors(uint8_t* colormap, uint8_t* palette, int gifWidth, int height){
+    uint16_t* pixelmap = (uint16_t*) malloc(sizeof(uint16_t) * gifWidth * height);
+    int brightnessLevel = 3;
+    for(int i = 0; i < gifWidth*height; i++){
+        pixelmap[i] = PACK_PIXEL(palette[3 * colormap[i] + 0] * brightnessLevel
+                                ,palette[3 * colormap[i] + 1] * brightnessLevel
+                                ,palette[3 * colormap[i] + 2] * brightnessLevel);
     }
+    return pixelmap;
 }
 
 /* romdisk */
@@ -129,22 +129,23 @@ int main(void) {
     pvr_init_defaults();
 
     //set our video mode
+    //TODO melhorar a inicializacao de video
     vid_set_mode(DM_320x240, PM_RGB565);
 
     //initialize software double buffer
-    dis_initializeDoublebuffer(SCREEN_WIDTH*SCREEN_HEIGHT);
+    dis_initializeDoublebuffer();
 
     // Declare an array to hold the max. number of possible colors (*3 for RGB)
     uint8_t palette[256 * 3];
     int palsize;
 
     // Load the colormap, heightmap, and palette from the external GIF files
-    // TODO Melhorar para pegar o tamanho do gif dinamicamente
     // TODO segregar o tratamento de cor em outra lib
-    colormap = loadgif("/rd/gif/map0.color.gif", NULL, NULL, &palsize, palette);
+    int gifWidth;
+    int gifHeight;
+    colormap = loadgif("/rd/gif/map0.color.gif", &gifWidth, &gifHeight, &palsize, palette);
     heightmap = loadgif("/rd/gif/map0.height.gif", NULL, NULL, NULL, NULL);
-    pixelmap = (uint16_t*) malloc(sizeof(uint16_t) * 1024 * 1024);
-    gifPalletedToDirectColors(colormap, palette, pixelmap);
+    pixelmap = gifPalletedToDirectColors(colormap, palette, gifWidth, gifHeight);
 
     //Main Loop
     while(!quit) 

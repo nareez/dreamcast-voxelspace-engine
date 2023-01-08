@@ -7,8 +7,8 @@ uint32_t framebufferSize;
 
 /* Initialize double buffer
  * parameter: size of framebuffer */
-void dis_initializeDoublebuffer(uint32_t bufferSize){
-    framebufferSize = bufferSize * sizeof(uint16_t);
+void dis_initializeDoublebuffer(){
+    framebufferSize = SCREEN_WIDTH * SCREEN_HEIGHT * sizeof(uint16_t);
     framebuffer_1 = (uint16_t*) malloc(framebufferSize);
     framebuffer_2 = (uint16_t*) malloc(framebufferSize);
     memset(framebuffer_1,'\0', framebufferSize);
