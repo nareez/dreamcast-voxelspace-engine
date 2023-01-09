@@ -6,9 +6,6 @@
 #include "gif.h"
 #include "display.h"
 
-//TODOs
-//Create an FPS counter
-
 //Constants
 #define MAP_N 1024
 #define SCALE_FACTOR 70.0
@@ -108,6 +105,15 @@ uint16_t* gifPalletedToDirectColors(uint8_t* colormap, uint8_t* palette, int gif
     return pixelmap;
 }
 
+//get time passed since power on in miliseconds
+//TODO tirar essa função da main
+uint32_t getTimeInMilis(){
+    uint32_t seconds;
+    uint32_t miliseconds;
+    timer_ms_gettime(&seconds, &miliseconds);
+    return (seconds * 1000) + miliseconds;
+}
+
 /* romdisk */
 extern uint8 romdisk_boot[];
 KOS_INIT_ROMDISK(romdisk_boot);
@@ -134,11 +140,29 @@ int main(void) {
     // Convert palleted colors to pixel color map
     pixelmap = gifPalletedToDirectColors(colormap, palette, gifWidth, gifHeight);
 
+    //FPS Counter
+    int numberOfFrames = 0;
+    uint32 startTime = getTimeInMilis();
+    uint32 currentTime = 0;
+    char fpsText[20];
+
     //Main Loop
     while(!quit) 
     {
+        //FPS Counter
+        currentTime = getTimeInMilis();
+        if((currentTime - startTime) > 1000){
+            double fps = 1000.0 * (double)numberOfFrames / (double)(currentTime - startTime);
+            sprintf(fpsText, "FPS: %.2f", fps);
+            numberOfFrames = 0;
+            startTime = currentTime;
+        }
+        numberOfFrames++;
+
+        //Process controller input
         processinput();
 
+        //TODO remover esses calculos da main
         float sinangle = sin(camera.angle);
         float cosangle = cos(camera.angle);
 
@@ -183,6 +207,9 @@ int main(void) {
                 }
             }
         }
+        
+        bfont_draw_str(backbuffer, SCREEN_WIDTH, 0, fpsText);
+
         dis_flipBuffer();
         dis_clearBackBuffer(0, 0x82, 0xFF);
     }

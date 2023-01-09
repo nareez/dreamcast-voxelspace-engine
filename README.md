@@ -3,6 +3,7 @@
 ## TODO
 
 - [x] Develop workking code of voxel space engine for Dreamcast
+- [ ] FPS Count
 - [ ] Collision
 - [ ] Fog Effect
 
