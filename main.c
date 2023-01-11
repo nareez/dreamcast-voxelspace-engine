@@ -6,6 +6,10 @@
 #include "gif.h"
 #include "display.h"
 
+//TODO list
+//Implement delta time
+//Fix gif.h unaligned memory access
+
 //Constants
 #define MAP_N 1024
 #define SCALE_FACTOR 70.0
@@ -39,7 +43,7 @@ camera_t camera = {
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-// Handle keyboard input (TODO)
+// Handle keyboard input
 ///////////////////////////////////////////////////////////////////////////////
 int processinput() {
     maple_device_t *cont;
@@ -114,6 +118,62 @@ uint32_t getTimeInMilis(){
     return (seconds * 1000) + miliseconds;
 }
 
+//Update Game State
+void updateGameState(){
+    //TODO remover esses calculos da main
+    float sinangle = sin(camera.angle);
+    float cosangle = cos(camera.angle);
+
+    // Left-most point of the FOV
+    float plx = cosangle * camera.zfar + sinangle * camera.zfar;
+    float ply = sinangle * camera.zfar - cosangle * camera.zfar;
+
+    // Right-most point of the FOV
+    float prx = cosangle * camera.zfar - sinangle * camera.zfar;
+    float pry = sinangle * camera.zfar + cosangle * camera.zfar;
+
+    // Loop 320 rays from left to right
+    for (int i = 0; i < SCREEN_WIDTH; i++) {
+        float deltax = (plx + (prx - plx) / SCREEN_WIDTH * i) / camera.zfar;
+        float deltay = (ply + (pry - ply) / SCREEN_WIDTH * i) / camera.zfar;
+
+        // Ray (x,y) coords
+        float rx = camera.x;
+        float ry = camera.y;
+
+        // Store the tallest projected height per-ray
+        float tallestheight = SCREEN_HEIGHT;
+
+        // Loop all depth units until the zfar distance limit
+        for (int z = 1; z < camera.zfar; z++) {
+            rx += deltax;
+            ry += deltay;
+
+            // Find the offset that we have to go and fetch values from the heightmap
+            int mapoffset = ((MAP_N * ((int)(ry) & (MAP_N - 1))) + ((int)(rx) & (MAP_N - 1)));
+
+            // Project height values and find the height on-screen
+            int projheight = (int)((camera.height - heightmap[mapoffset]) / z * SCALE_FACTOR + camera.horizon);
+
+            // Only draw pixels if the new projected height is taller than the previous tallest height
+            if (projheight < tallestheight) {
+                // Draw pixels from previous max-height until the new projected height
+                for (int y = projheight; y < tallestheight; y++) {
+                    DRAW_PIXEL(i, y, pixelmap[mapoffset]);
+                }
+                tallestheight = projheight;
+            }
+        }
+    }
+}
+
+char fpsText[20];
+void render(){
+    bfont_draw_str(backbuffer, SCREEN_WIDTH, 0, fpsText);
+    dis_flipBuffer();
+    dis_clearBackBuffer(0, 0x82, 0xFF);
+}
+
 /* romdisk */
 extern uint8 romdisk_boot[];
 KOS_INIT_ROMDISK(romdisk_boot);
@@ -127,6 +187,7 @@ int main(void) {
     //initialize display
     dis_initializeDisplay();
 
+    //TODO Refactor load GIF
     // Declare an array to hold the max. number of possible colors (*3 for RGB)
     uint8_t palette[256 * 3];
     int palsize;
@@ -137,6 +198,7 @@ int main(void) {
     colormap = loadgif("/rd/gif/map0.color.gif", &gifWidth, &gifHeight, &palsize, palette);
     heightmap = loadgif("/rd/gif/map0.height.gif", NULL, NULL, NULL, NULL);
     // TODO segregar o tratamento de cor em outra lib
+    // TODO resolver desalinhamento de memória
     // Convert palleted colors to pixel color map
     pixelmap = gifPalletedToDirectColors(colormap, palette, gifWidth, gifHeight);
 
@@ -144,7 +206,6 @@ int main(void) {
     int numberOfFrames = 0;
     uint32 startTime = getTimeInMilis();
     uint32 currentTime = 0;
-    char fpsText[20];
 
     //Main Loop
     while(!quit) 
@@ -162,56 +223,12 @@ int main(void) {
         //Process controller input
         processinput();
 
-        //TODO remover esses calculos da main
-        float sinangle = sin(camera.angle);
-        float cosangle = cos(camera.angle);
+        //Update Game State
+        updateGameState();
 
-        // Left-most point of the FOV
-        float plx = cosangle * camera.zfar + sinangle * camera.zfar;
-        float ply = sinangle * camera.zfar - cosangle * camera.zfar;
+        //render
+        render();
 
-        // Right-most point of the FOV
-        float prx = cosangle * camera.zfar - sinangle * camera.zfar;
-        float pry = sinangle * camera.zfar + cosangle * camera.zfar;
-
-        // Loop 320 rays from left to right
-        for (int i = 0; i < SCREEN_WIDTH; i++) {
-            float deltax = (plx + (prx - plx) / SCREEN_WIDTH * i) / camera.zfar;
-            float deltay = (ply + (pry - ply) / SCREEN_WIDTH * i) / camera.zfar;
-
-            // Ray (x,y) coords
-            float rx = camera.x;
-            float ry = camera.y;
-
-            // Store the tallest projected height per-ray
-            float tallestheight = SCREEN_HEIGHT;
-
-            // Loop all depth units until the zfar distance limit
-            for (int z = 1; z < camera.zfar; z++) {
-                rx += deltax;
-                ry += deltay;
-
-                // Find the offset that we have to go and fetch values from the heightmap
-                int mapoffset = ((MAP_N * ((int)(ry) & (MAP_N - 1))) + ((int)(rx) & (MAP_N - 1)));
-
-                // Project height values and find the height on-screen
-                int projheight = (int)((camera.height - heightmap[mapoffset]) / z * SCALE_FACTOR + camera.horizon);
-
-                // Only draw pixels if the new projected height is taller than the previous tallest height
-                if (projheight < tallestheight) {
-                    // Draw pixels from previous max-height until the new projected height
-                    for (int y = projheight; y < tallestheight; y++) {
-                        DRAW_PIXEL(i, y, pixelmap[mapoffset]);
-                    }
-                    tallestheight = projheight;
-                }
-            }
-        }
-        
-        bfont_draw_str(backbuffer, SCREEN_WIDTH, 0, fpsText);
-
-        dis_flipBuffer();
-        dis_clearBackBuffer(0, 0x82, 0xFF);
     }
 
     return 0;

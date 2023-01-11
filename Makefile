@@ -2,7 +2,9 @@ all: rm-elf main.elf
 
 include $(KOS_BASE)/Makefile.rules
 
-export CFLAGS = -std=c99
+CFLAGS = -std=c99
+
+#KOS_CFLAGS=-O3 -ffast-math -fomit-frame-pointer -ml -m4-single-only -ffunction-sections -fdata-sections  -I/opt/toolchains/dc/kos/include -I/opt/toolchains/dc/kos/kernel/arch/dreamcast/include -I/opt/toolchains/dc/kos/addons/include -I/opt/toolchains/dc/kos/../kos-ports/include -I/opt/toolchains/dc/kos/include -I/opt/toolchains/dc/kos/kernel/arch/dreamcast/include -I/opt/toolchains/dc/kos/addons/include -I/opt/toolchains/dc/kos/../kos-ports/include -D_arch_dreamcast -D_arch_sub_pristine -Wall -fno-builtin -ml -m4-single-only -ffunction-sections -fdata-sections
 
 OBJS = main.o display.o
 	

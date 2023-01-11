@@ -8,6 +8,7 @@
         "fs.h": "c",
         "stdio.h": "c",
         "malloc.h": "c",
-        "chrono": "c"
+        "chrono": "c",
+        "__locale": "c"
     }
 }
