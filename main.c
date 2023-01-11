@@ -109,15 +109,6 @@ uint16_t* gifPalletedToDirectColors(uint8_t* colormap, uint8_t* palette, int gif
     return pixelmap;
 }
 
-//get time passed since power on in miliseconds
-//TODO tirar essa função da main
-uint32_t getTimeInMilis(){
-    uint32_t seconds;
-    uint32_t miliseconds;
-    timer_ms_gettime(&seconds, &miliseconds);
-    return (seconds * 1000) + miliseconds;
-}
-
 //Update Game State
 void updateGameState(){
     //TODO remover esses calculos da main
@@ -204,14 +195,14 @@ int main(void) {
 
     //FPS Counter
     int numberOfFrames = 0;
-    uint32 startTime = getTimeInMilis();
+    uint64 startTime = timer_ms_gettime64();
     uint32 currentTime = 0;
 
     //Main Loop
     while(!quit) 
     {
         //FPS Counter
-        currentTime = getTimeInMilis();
+        currentTime = timer_ms_gettime64();
         if((currentTime - startTime) > 1000){
             double fps = 1000.0 * (double)numberOfFrames / (double)(currentTime - startTime);
             sprintf(fpsText, "FPS: %.2f", fps);
