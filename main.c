@@ -71,12 +71,12 @@ int processInput() {
         camera.height++;
     }
     if(state->buttons & CONT_DPAD_UP){
-        camera.x += cos(camera.angle);
-        camera.y += sin(camera.angle);
+        camera.x += fcos(camera.angle);
+        camera.y += fsin(camera.angle);
     }
     if(state->buttons & CONT_DPAD_DOWN){
-        camera.x -= cos(camera.angle);
-        camera.y -= sin(camera.angle);
+        camera.x -= fcos(camera.angle);
+        camera.y -= fsin(camera.angle);
     }
     if(state->buttons & CONT_DPAD_LEFT){
         camera.angle -= 0.02;
@@ -96,16 +96,16 @@ int processInput() {
 //Update Game State
 void updateGameState(){
     //TODO remover esses calculos da main
-    float sinangle = sin(camera.angle);
-    float cosangle = cos(camera.angle);
+    float sh4FSCARadianSine = fsin(camera.angle);
+    float sh4FSCARadianCosine = fcos(camera.angle);
 
     // Left-most point of the FOV
-    float plx = cosangle * camera.zfar + sinangle * camera.zfar;
-    float ply = sinangle * camera.zfar - cosangle * camera.zfar;
+    float plx = sh4FSCARadianCosine * camera.zfar + sh4FSCARadianSine * camera.zfar;
+    float ply = sh4FSCARadianSine * camera.zfar - sh4FSCARadianCosine * camera.zfar;
 
     // Right-most point of the FOV
-    float prx = cosangle * camera.zfar - sinangle * camera.zfar;
-    float pry = sinangle * camera.zfar + cosangle * camera.zfar;
+    float prx = sh4FSCARadianCosine * camera.zfar - sh4FSCARadianSine * camera.zfar;
+    float pry = sh4FSCARadianSine * camera.zfar + sh4FSCARadianCosine * camera.zfar;
 
     // Loop 320 rays from left to right
     for (int i = 0; i < SCREEN_WIDTH; i++) {
