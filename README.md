@@ -1,20 +1,19 @@
 # Voxel Space Engine for Dreamcast
-
-Dreamcast emulators are much faster then hardware examples below
-DEMUL 15fps 5 fps faster then a real dreamcast
-![demul1 2023-01-16 13-55-28-050](https://user-images.githubusercontent.com/59771322/212748971-f5a3005c-5d03-4402-b330-2e579d5742bd.jpg)
-
-Redream faster then hardware
-![redream 2023-01-16 13-57-58-990](https://user-images.githubusercontent.com/59771322/212749154-8d3e3ff2-5ecb-42ce-926f-334d9e226ef4.jpg)
-
-Nulldc 7 fps faster then hardware
-
-![nullDC_Win32_Release 2023-01-16 13-58-54-075](https://user-images.githubusercontent.com/59771322/212749305-64959318-1136-4c52-951e-a3e8a72e1da0.jpg)
-
-Update video
 added my version of faster SQ and sh4 math header
 
 https://user-images.githubusercontent.com/59771322/212742671-7e54db6f-d949-476f-9f84-e73b5e3623d1.mp4
+
+Dreamcast emulators are much faster then hardware examples below
+King of being way too fast flycast
+![flycast 2023-01-16 14-06-53-537](https://user-images.githubusercontent.com/59771322/212750682-476e49ea-c645-4721-9b84-62f439ac361f.jpg)
+DEMUL 15fps 5 fps faster then a real dreamcast
+![demul1 2023-01-16 13-55-28-050](https://user-images.githubusercontent.com/59771322/212748971-f5a3005c-5d03-4402-b330-2e579d5742bd.jpg)
+Redream faster then hardware
+![redream 2023-01-16 13-57-58-990](https://user-images.githubusercontent.com/59771322/212749154-8d3e3ff2-5ecb-42ce-926f-334d9e226ef4.jpg)
+Nulldc 7 fps faster then hardware
+![nullDC_Win32_Release 2023-01-16 13-58-54-075](https://user-images.githubusercontent.com/59771322/212749305-64959318-1136-4c52-951e-a3e8a72e1da0.jpg)
+Update video
+
 
 
 
