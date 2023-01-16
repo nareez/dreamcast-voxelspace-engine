@@ -1,10 +1,23 @@
 # Voxel Space Engine for Dreamcast
 
+Update video
+added my version of faster SQ and sh4 math header
+
+https://user-images.githubusercontent.com/59771322/212742671-7e54db6f-d949-476f-9f84-e73b5e3623d1.mp4
+
+
+
+
+
 ## TODO
 
 - [x] Develop workking code of voxel space engine for Dreamcast
 - [x] FPS Count
 - [ ] Collision
+
+
+
+
 - [ ] Fog Effect
 - [ ] Delta time
 
