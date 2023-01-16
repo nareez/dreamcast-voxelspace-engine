@@ -4,7 +4,8 @@
             "name": "Mac",
             "includePath": [
                 "${workspaceFolder}/**",
-                "/Users/luiz/Workspace/KallistiOS/**"
+                "/Users/luiz/Workspace/KallistiOS/**",
+                "/Users/luiz/Workspace/kos-ports/**"
             ],
             "defines": [],
             "macFrameworkPath": [

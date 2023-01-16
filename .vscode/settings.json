@@ -9,6 +9,13 @@
         "stdio.h": "c",
         "malloc.h": "c",
         "chrono": "c",
-        "__locale": "c"
+        "__locale": "c",
+        "gif.h": "c",
+        "stdint.h": "c",
+        "readpng.h": "c",
+        "array": "c",
+        "vector": "c",
+        "stb_image.h": "c",
+        "math.h": "c"
     }
 }

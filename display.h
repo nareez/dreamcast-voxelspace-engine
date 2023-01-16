@@ -13,7 +13,7 @@
 		backbuffer[(y * SCREEN_WIDTH) + x] = color;
 
 //Variables
-uint16_t* backbuffer;
+extern uint16_t* backbuffer;
 
 //Functions
 void dis_initializeDisplay(void);

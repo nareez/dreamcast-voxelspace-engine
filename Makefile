@@ -25,7 +25,7 @@ rm-elf:
 	-rm -f romdisk_boot.*
 
 main.elf: $(OBJS) romdisk_boot.o
-	$(KOS_CC) $(KOS_CFLAGS) $(KOS_LDFLAGS) -o $@ $(KOS_START) $^ -lm $(KOS_LIBS)
+	$(KOS_CC) $(KOS_CFLAGS) $(KOS_LDFLAGS) -o $@ $(KOS_START) $^ -lm $(KOS_LIBS)  
 
 romdisk_boot.img:
 	$(KOS_GENROMFS) -f $@ -d romdisk_boot -v

@@ -3,8 +3,10 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <math.h>
-#include "gif.h"
 #include "display.h"
+#define STB_IMAGE_IMPLEMENTATION
+#define STBI_ONLY_TGA
+#include "stb_image.h"
 
 //TODO list
 //Implement delta time
@@ -14,16 +16,13 @@
 #define MAP_N 1024
 #define SCALE_FACTOR 70.0
 
-///////////////////////////////////////////////////////////////////////////////
-// Buffers for Heightmap and Colormap
-///////////////////////////////////////////////////////////////////////////////
-uint8_t* heightmap = NULL;   // Buffer/array to hold height values (1024*1024)
-uint8_t* colormap  = NULL;   // Buffer/array to hold color values  (1024*1024)
-uint16_t* pixelmap = NULL;   // Buffer/array to hold pixel color values (1024*1024)
 
-///////////////////////////////////////////////////////////////////////////////
+// Buffers for Heightmap and pixelMap
+uint8_t* heightMap = NULL;   // Buffer to hold height values in grayscale
+uint16_t* pixelMap = NULL;   // Buffer to hold pixel color values in RGB565
+
+
 // Camera struct type declaration
-///////////////////////////////////////////////////////////////////////////////
 typedef struct {
     float x;         // x position on the map
     float y;         // y position on the map
@@ -42,13 +41,11 @@ camera_t camera = {
     .angle   = 1.5 * 3.141592 // (= 270 deg)
 };
 
-///////////////////////////////////////////////////////////////////////////////
-// Handle keyboard input
-///////////////////////////////////////////////////////////////////////////////
-int processinput() {
+// Handle controller input
+int processInput() {
     maple_device_t *cont;
     cont_state_t *state;
-
+    
     cont = maple_enum_type(0, MAPLE_FUNC_CONTROLLER);
 
     /* Check key status */
@@ -96,19 +93,6 @@ int processinput() {
     return 1;
 }
 
-//TODO ver onde colocar essa function
-// Convert palleted colors to pixel color map
-uint16_t* gifPalletedToDirectColors(uint8_t* colormap, uint8_t* palette, int gifWidth, int height){
-    uint16_t* pixelmap = (uint16_t*) malloc(sizeof(uint16_t) * gifWidth * height);
-    int brightnessLevel = 3;
-    for(int i = 0; i < gifWidth*height; i++){
-        pixelmap[i] = PACK_PIXEL(palette[3 * colormap[i] + 0] * brightnessLevel
-                                ,palette[3 * colormap[i] + 1] * brightnessLevel
-                                ,palette[3 * colormap[i] + 2] * brightnessLevel);
-    }
-    return pixelmap;
-}
-
 //Update Game State
 void updateGameState(){
     //TODO remover esses calculos da main
@@ -140,22 +124,30 @@ void updateGameState(){
             rx += deltax;
             ry += deltay;
 
-            // Find the offset that we have to go and fetch values from the heightmap
+            // Find the offset that we have to go and fetch values from the heightMap
             int mapoffset = ((MAP_N * ((int)(ry) & (MAP_N - 1))) + ((int)(rx) & (MAP_N - 1)));
 
             // Project height values and find the height on-screen
-            int projheight = (int)((camera.height - heightmap[mapoffset]) / z * SCALE_FACTOR + camera.horizon);
+            int projheight = (int)((camera.height - heightMap[mapoffset]) / z * SCALE_FACTOR + camera.horizon);
 
             // Only draw pixels if the new projected height is taller than the previous tallest height
             if (projheight < tallestheight) {
                 // Draw pixels from previous max-height until the new projected height
                 for (int y = projheight; y < tallestheight; y++) {
-                    DRAW_PIXEL(i, y, pixelmap[mapoffset]);
+                    DRAW_PIXEL(i, y, pixelMap[mapoffset]);
                 }
                 tallestheight = projheight;
             }
         }
     }
+}
+
+uint16_t* RGB_channels_to_pixelMapRGB565(uint8_t *rgb, int image_width, int image_height){
+    uint16_t *result = (uint16_t *) malloc(image_width * image_height * sizeof(uint16_t));
+    for (int i = 0; i < image_width * image_height; i++){
+        result[i] = PACK_PIXEL(rgb[i * 3], rgb[i * 3 + 1], rgb[i * 3 + 2]);
+    }
+    return result;
 }
 
 char fpsText[20];
@@ -178,20 +170,12 @@ int main(void) {
     //initialize display
     dis_initializeDisplay();
 
-    //TODO Refactor load GIF
-    // Declare an array to hold the max. number of possible colors (*3 for RGB)
-    uint8_t palette[256 * 3];
-    int palsize;
+    int image_width, image_height, comp;
 
-    // Load the colormap, heightmap, and palette from the external GIF files
-    int gifWidth;
-    int gifHeight;
-    colormap = loadgif("/rd/gif/map0.color.gif", &gifWidth, &gifHeight, &palsize, palette);
-    heightmap = loadgif("/rd/gif/map0.height.gif", NULL, NULL, NULL, NULL);
-    // TODO segregar o tratamento de cor em outra lib
-    // TODO resolver desalinhamento de memória
-    // Convert palleted colors to pixel color map
-    pixelmap = gifPalletedToDirectColors(colormap, palette, gifWidth, gifHeight);
+    uint8_t *RGBMap = stbi_load("/rd/images/texture/C1W.tga", &image_width, &image_height, &comp, STBI_rgb);
+    pixelMap = RGB_channels_to_pixelMapRGB565(RGBMap, image_width, image_height); //TODO melhorar isso aqui
+
+    heightMap = stbi_load("/rd/images/height/D1.tga", &image_width, &image_height, &comp, STBI_grey);
 
     //FPS Counter
     int numberOfFrames = 0;
@@ -212,7 +196,7 @@ int main(void) {
         numberOfFrames++;
 
         //Process controller input
-        processinput();
+        processInput();
 
         //Update Game State
         updateGameState();

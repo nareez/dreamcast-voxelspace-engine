@@ -4,6 +4,7 @@ int currentBuffer;
 uint16_t* framebuffer_1;
 uint16_t* framebuffer_2;
 uint32_t framebufferSize;
+uint16_t* backbuffer;
 
 /* Initialize double buffer
  * parameter: size of framebuffer */
