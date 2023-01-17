@@ -4,9 +4,7 @@
 #include <stdint.h>
 #include <math.h>
 #include "display.h"
-#define STB_IMAGE_IMPLEMENTATION
-#define STBI_ONLY_TGA
-#include "stb_image.h"
+#include "load_map.h"
 
 //TODO list
 //Implement delta time
@@ -17,9 +15,9 @@
 #define SCALE_FACTOR 70.0
 
 
-// Buffers for Heightmap and pixelMap
-uint8_t* heightMap = NULL;   // Buffer to hold height values in grayscale
-uint16_t* pixelMap = NULL;   // Buffer to hold pixel color values in RGB565
+// Buffers for height_map and texture_map
+uint8_t* height_map = NULL;   // Buffer to hold height values in grayscale
+uint16_t* texture_map = NULL;   // Buffer to hold pixel color values in RGB565
 
 
 // Camera struct type declaration
@@ -32,6 +30,7 @@ typedef struct {
     float angle;     // camera angle (radians, clockwise)
 } camera_t;
 
+// Camera definition
 camera_t camera = {
     .x       = 512.0,
     .y       = 512.0,
@@ -42,13 +41,13 @@ camera_t camera = {
 };
 
 // Handle controller input
-int processInput() {
+int process_input() {
     maple_device_t *cont;
     cont_state_t *state;
     
     cont = maple_enum_type(0, MAPLE_FUNC_CONTROLLER);
 
-    /* Check key status */
+    // Check key status
     state = (cont_state_t *)maple_dev_status(cont);
 
     if(!state) {
@@ -84,77 +83,69 @@ int processInput() {
     if(state->buttons & CONT_DPAD_RIGHT){
         camera.angle += 0.02;
     }
-    if(state->ltrig)
+    if(state->ltrig){
         return 0;
-
-    if(state->rtrig)
+    }
+    if(state->rtrig){
         return 0;
-
+    }
     return 1;
 }
 
 //Update Game State
-void updateGameState(){
+void update_game_state(){
     //TODO remover esses calculos da main
-    float sinangle = sin(camera.angle);
-    float cosangle = cos(camera.angle);
+    float sin_angle = sin(camera.angle);
+    float cos_angle = cos(camera.angle);
 
     // Left-most point of the FOV
-    float plx = cosangle * camera.zfar + sinangle * camera.zfar;
-    float ply = sinangle * camera.zfar - cosangle * camera.zfar;
+    float plx = cos_angle * camera.zfar + sin_angle * camera.zfar;
+    float ply = sin_angle * camera.zfar - cos_angle * camera.zfar;
 
     // Right-most point of the FOV
-    float prx = cosangle * camera.zfar - sinangle * camera.zfar;
-    float pry = sinangle * camera.zfar + cosangle * camera.zfar;
+    float prx = cos_angle * camera.zfar - sin_angle * camera.zfar;
+    float pry = sin_angle * camera.zfar + cos_angle * camera.zfar;
 
-    // Loop 320 rays from left to right
+    // Loop SCREEN_WIDTH rays from left to right
     for (int i = 0; i < SCREEN_WIDTH; i++) {
-        float deltax = (plx + (prx - plx) / SCREEN_WIDTH * i) / camera.zfar;
-        float deltay = (ply + (pry - ply) / SCREEN_WIDTH * i) / camera.zfar;
+        float delta_x = (plx + (prx - plx) / SCREEN_WIDTH * i) / camera.zfar;
+        float delta_y = (ply + (pry - ply) / SCREEN_WIDTH * i) / camera.zfar;
 
         // Ray (x,y) coords
         float rx = camera.x;
         float ry = camera.y;
 
         // Store the tallest projected height per-ray
-        float tallestheight = SCREEN_HEIGHT;
+        float tallest_height = SCREEN_HEIGHT;
 
         // Loop all depth units until the zfar distance limit
         for (int z = 1; z < camera.zfar; z++) {
-            rx += deltax;
-            ry += deltay;
+            rx += delta_x;
+            ry += delta_y;
 
-            // Find the offset that we have to go and fetch values from the heightMap
-            int mapoffset = ((MAP_N * ((int)(ry) & (MAP_N - 1))) + ((int)(rx) & (MAP_N - 1)));
+            // Find the offset that we have to go and fetch values from the height_map
+            int map_offset = ((MAP_N * ((int)(ry) & (MAP_N - 1))) + ((int)(rx) & (MAP_N - 1)));
 
             // Project height values and find the height on-screen
-            int projheight = (int)((camera.height - heightMap[mapoffset]) / z * SCALE_FACTOR + camera.horizon);
+            int proj_height = (int)((camera.height - height_map[map_offset]) / z * SCALE_FACTOR + camera.horizon);
 
             // Only draw pixels if the new projected height is taller than the previous tallest height
-            if (projheight < tallestheight) {
+            if (proj_height < tallest_height) {
                 // Draw pixels from previous max-height until the new projected height
-                for (int y = projheight; y < tallestheight; y++) {
-                    DRAW_PIXEL(i, y, pixelMap[mapoffset]);
+                for (int y = proj_height; y < tallest_height; y++) {
+                    DRAW_PIXEL(i, y, texture_map[map_offset]);
                 }
-                tallestheight = projheight;
+                tallest_height = proj_height;
             }
         }
     }
 }
 
-uint16_t* RGB_channels_to_pixelMapRGB565(uint8_t *rgb, int image_width, int image_height){
-    uint16_t *result = (uint16_t *) malloc(image_width * image_height * sizeof(uint16_t));
-    for (int i = 0; i < image_width * image_height; i++){
-        result[i] = PACK_PIXEL(rgb[i * 3], rgb[i * 3 + 1], rgb[i * 3 + 2]);
-    }
-    return result;
-}
-
-char fpsText[20];
+char screen_text[20];
 void render(){
-    bfont_draw_str(backbuffer, SCREEN_WIDTH, 0, fpsText);
-    dis_flipBuffer();
-    dis_clearBackBuffer(0, 0x82, 0xFF);
+    bfont_draw_str(backbuffer, SCREEN_WIDTH, 0, screen_text);
+    display_flip_framebuffer();
+    display_clear_backbuffer(0, 0x82, 0xFF);
 }
 
 /* romdisk */
@@ -168,38 +159,35 @@ int main(void) {
     pvr_init_defaults();
 
     //initialize display
-    dis_initializeDisplay();
+    display_initialize();
 
-    int image_width, image_height, comp;
-
-    uint8_t *RGBMap = stbi_load("/rd/images/texture/C1W.tga", &image_width, &image_height, &comp, STBI_rgb);
-    pixelMap = RGB_channels_to_pixelMapRGB565(RGBMap, image_width, image_height); //TODO melhorar isso aqui
-
-    heightMap = stbi_load("/rd/images/height/D1.tga", &image_width, &image_height, &comp, STBI_grey);
+    //initialize level
+    texture_map = loadmap_get_texture(0);
+    height_map = loadmap_get_heights(0);
 
     //FPS Counter
-    int numberOfFrames = 0;
-    uint64 startTime = timer_ms_gettime64();
-    uint32 currentTime = 0;
+    int number_of_frames = 0;
+    uint64 start_time = timer_ms_gettime64();
+    uint32 current_time = 0;
 
     //Main Loop
     while(!quit) 
     {
         //FPS Counter
-        currentTime = timer_ms_gettime64();
-        if((currentTime - startTime) > 1000){
-            double fps = 1000.0 * (double)numberOfFrames / (double)(currentTime - startTime);
-            sprintf(fpsText, "FPS: %.2f", fps);
-            numberOfFrames = 0;
-            startTime = currentTime;
+        current_time = timer_ms_gettime64();
+        if((current_time - start_time) > 1000){
+            double fps = 1000.0 * (double)number_of_frames / (double)(current_time - start_time);
+            sprintf(screen_text, "FPS: %.2f", fps);
+            number_of_frames = 0;
+            start_time = current_time;
         }
-        numberOfFrames++;
+        number_of_frames++;
 
         //Process controller input
-        processInput();
+        process_input();
 
         //Update Game State
-        updateGameState();
+        update_game_state();
 
         //render
         render();

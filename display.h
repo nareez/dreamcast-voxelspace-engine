@@ -16,9 +16,9 @@
 extern uint16_t* backbuffer;
 
 //Functions
-void dis_initializeDisplay(void);
-void dis_initializeDoublebuffer(void);
-void dis_flipBuffer(void);
-void dis_clearBackBuffer(int r, int g, int b);
+void display_initialize(void);
+void display_initialize_doublebuffer(void);
+void display_flip_framebuffer(void);
+void display_clear_backbuffer(int r, int g, int b);
 
 #endif

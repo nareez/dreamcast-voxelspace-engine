@@ -16,6 +16,9 @@
         "array": "c",
         "vector": "c",
         "stb_image.h": "c",
-        "math.h": "c"
+        "math.h": "c",
+        "load_map": "c",
+        "variant": "c",
+        "load_map.h": "c"
     }
 }

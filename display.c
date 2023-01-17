@@ -1,57 +1,57 @@
 #include "display.h"
 
-int currentBuffer;
+int current_buffer;
 uint16_t* framebuffer_1;
 uint16_t* framebuffer_2;
-uint32_t framebufferSize;
+uint32_t framebuffer_size;
 uint16_t* backbuffer;
 
 /* Initialize double buffer
  * parameter: size of framebuffer */
-void dis_initializeDoublebuffer(){
-    framebufferSize = SCREEN_WIDTH * SCREEN_HEIGHT * sizeof(uint16_t);
-    framebuffer_1 = (uint16_t*) malloc(framebufferSize);
-    framebuffer_2 = (uint16_t*) malloc(framebufferSize);
-    memset(framebuffer_1,'\0', framebufferSize);
-    memset(framebuffer_2,'\0', framebufferSize);
+void display_initialize_doublebuffer(){
+    framebuffer_size = SCREEN_WIDTH * SCREEN_HEIGHT * sizeof(uint16_t);
+    framebuffer_1 = (uint16_t*) malloc(framebuffer_size);
+    framebuffer_2 = (uint16_t*) malloc(framebuffer_size);
+    memset(framebuffer_1,'\0', framebuffer_size);
+    memset(framebuffer_2,'\0', framebuffer_size);
 
     backbuffer = framebuffer_1;
-    currentBuffer = 1;
+    current_buffer = 1;
 }
 
-void dis_initializeDisplay(){
+void display_initialize(){
     //set our video mode
     vid_set_mode(DM_320x240, PM_RGB565);
 
     //initialize software double buffer
-    dis_initializeDoublebuffer();
+    display_initialize_doublebuffer();
 }
 
 
 //flip double buffer
-void dis_flipBuffer(){
+void display_flip_framebuffer(){
     // Store Queue Trasnfer
-    if(currentBuffer == 1){
-        currentBuffer = 2;
+    if(current_buffer == 1){
+        current_buffer = 2;
         backbuffer = framebuffer_2;
         //vid_waitvbl();
-        sq_cpy(vram_s, framebuffer_1, framebufferSize);
+        sq_cpy(vram_s, framebuffer_1, framebuffer_size);
 
     } else {
-        currentBuffer = 1;
+        current_buffer = 1;
         backbuffer = framebuffer_1;
         //vid_waitvbl();
-        sq_cpy(vram_s, framebuffer_2, framebufferSize);
+        sq_cpy(vram_s, framebuffer_2, framebuffer_size);
     }
     // DMA Trasnfer
-    // dcache_flush_range((uint32_t) backbuffer,framebufferSize);
+    // dcache_flush_range((uint32_t) backbuffer,framebuffer_size);
     // while (!pvr_dma_ready());
-    // pvr_dma_transfer(backbuffer,(uint32_t) vram_s, framebufferSize,
+    // pvr_dma_transfer(backbuffer,(uint32_t) vram_s, framebuffer_size,
     //                  PVR_DMA_VRAM32, -1, NULL, (ptr_t) NULL);
 }
 
 /* Initialize double buffer
  * parameter: Red, Green, Blue */
-void dis_clearBackBuffer(int r, int g, int b){
-    memset(backbuffer, PACK_PIXEL(r, g, b), framebufferSize);
+void display_clear_backbuffer(int r, int g, int b){
+    memset(backbuffer, PACK_PIXEL(r, g, b), framebuffer_size);
 }

@@ -4,6 +4,8 @@
 
 - [x] Develop workking code of voxel space engine for Dreamcast
 - [x] FPS Count
+- [x] Cleanup code
+- [ ] Performance fix
 - [ ] Collision
 - [ ] Fog Effect
 - [ ] Delta time
@@ -12,7 +14,7 @@ Issues:
 - [x] Screen tearing and flickering - Solution: Develop Double Buffering
 - [x] Slow RAM to VRAM data transfer - Solution: Transfer framebuffer data thru store queue copy
 - [x] Ugly surface colors - Solution: Increase brightness
-- [ ] Non aligned memory not allowing to run on real hardware
+- [x] Non aligned memory not allowing to run on real hardware
 
 ## Credits
 * Pikuma's implementation https://github.com/gustavopezzi/voxelspace
