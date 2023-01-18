@@ -97,7 +97,7 @@ int process_input() {
     }
     return 1;
 }
-
+    
 // float perspecive_divide_table[512][600];
 // void init_perspecive_divide_table(){
 //     for(int i = -255; i < 255; i++){
