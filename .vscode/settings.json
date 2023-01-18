@@ -19,6 +19,10 @@
         "math.h": "c",
         "load_map": "c",
         "variant": "c",
-        "load_map.h": "c"
+        "load_map.h": "c",
+        "limits": "c",
+        "ratio": "c",
+        "algorithm": "c",
+        "complex": "c"
     }
 }

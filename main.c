@@ -9,6 +9,7 @@
 //TODO list
 //Implement delta time
 //Fix gif.h unaligned memory access
+//Change all int to _t
 
 //Constants
 #define MAP_N 1024
@@ -34,10 +35,10 @@ typedef struct {
 camera_t camera = {
     .x       = 512.0,
     .y       = 512.0,
-    .height  = 70.0,
+    .height  = 70,
     .horizon = 60.0,
-    .zfar    = 600.0,
-    .angle   = 1.5 * 3.141592 // (= 270 deg)
+    .zfar    = 400,
+    .angle   = 0.0 //1.5 * 3.141592 // (= 270 deg)
 };
 
 // Handle controller input
@@ -58,7 +59,9 @@ int process_input() {
         return 0;
     }
     if(state->buttons & CONT_A){
-        camera.height--;
+        if(camera.height > 10){
+            camera.height--;
+        }
     }
     if(state->buttons & CONT_B){
         camera.horizon += 1.5;
@@ -67,7 +70,9 @@ int process_input() {
         camera.horizon -= 1.5;
     }
     if((state->buttons & CONT_Y)) {
-        camera.height++;
+        if(camera.height < 110){
+            camera.height++;
+        }
     }
     if(state->buttons & CONT_DPAD_UP){
         camera.x += cos(camera.angle);
@@ -79,9 +84,10 @@ int process_input() {
     }
     if(state->buttons & CONT_DPAD_LEFT){
         camera.angle -= 0.02;
+        camera.angle = camera.angle >= 0.0 ? fmod(camera.angle, 6.28) : 6.28 - abs(fmod(camera.angle, 6.28));
     }
     if(state->buttons & CONT_DPAD_RIGHT){
-        camera.angle += 0.02;
+        camera.angle = fmod((camera.angle + 0.02), (6.28));
     }
     if(state->ltrig){
         return 0;
@@ -91,6 +97,19 @@ int process_input() {
     }
     return 1;
 }
+
+// float perspecive_divide_table[512][600];
+// void init_perspecive_divide_table(){
+//     for(int i = -255; i < 255; i++){
+//         for(int j = 0; j < 600; j++){
+//             perspecive_divide_table[i + 255][j] = i / (float)j  * SCALE_FACTOR;
+//         }
+//     }
+// }
+
+// float perspecive_divide(int16_t height, uint16_t zfar){
+//     return perspecive_divide_table[height + 255][zfar];
+// }
 
 //Update Game State
 void update_game_state(){
@@ -128,7 +147,12 @@ void update_game_state(){
 
             // Project height values and find the height on-screen
             int proj_height = (int)((camera.height - height_map[map_offset]) / z * SCALE_FACTOR + camera.horizon);
-
+            // if((camera.height - height_map[map_offset]) < min){
+            //     min = (camera.height - height_map[map_offset]);
+            // }
+            // if((camera.height - height_map[map_offset]) > max){
+            //     max = (camera.height - height_map[map_offset]);
+            // }
             // Only draw pixels if the new projected height is taller than the previous tallest height
             if (proj_height < tallest_height) {
                 // Draw pixels from previous max-height until the new projected height
@@ -177,7 +201,7 @@ int main(void) {
         current_time = timer_ms_gettime64();
         if((current_time - start_time) > 1000){
             double fps = 1000.0 * (double)number_of_frames / (double)(current_time - start_time);
-            sprintf(screen_text, "FPS: %.2f", fps);
+            sprintf(screen_text, "fps: %.2f", camera.angle);
             number_of_frames = 0;
             start_time = current_time;
         }
