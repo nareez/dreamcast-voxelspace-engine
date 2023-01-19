@@ -5,7 +5,7 @@
 - [x] Develop workking code of voxel space engine for Dreamcast
 - [x] FPS Count
 - [x] Cleanup code
-- [ ] Performance fix
+- [ ] Better Performance
 - [ ] Collision
 - [ ] Fog Effect
 - [ ] Delta time
