@@ -72,18 +72,18 @@ void fast_cpy(void *dest, void *src, int n)
 //flip double buffer
 void display_flip_framebuffer(){
     // Store Queue Trasnfer
-    if(current_buffer == 1){
-        current_buffer = 2;
-        backbuffer = framebuffer_2;
+    // if(current_buffer == 1){
+        // current_buffer = 2;
+        // backbuffer = framebuffer_2;
         //vid_waitvbl();
         fast_cpy(vram_s, framebuffer_1, framebuffer_size);
 
-    } else {
-        current_buffer = 1;
-        backbuffer = framebuffer_1;
+    // } else {
+        // current_buffer = 1;
+        // backbuffer = framebuffer_1;
         //vid_waitvbl();
-        fast_cpy(vram_s, framebuffer_2, framebuffer_size);
-    }
+        // fast_cpy(vram_s, framebuffer_2, framebuffer_size);
+    // }
     // DMA Trasnfer
     // dcache_flush_range((uint32_t) backbuffer,framebuffer_size);
     // while (!pvr_dma_ready());

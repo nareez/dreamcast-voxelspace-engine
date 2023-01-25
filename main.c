@@ -35,7 +35,7 @@ camera_t camera = {
     .y       = 512.0,
     .height  = 70,
     .horizon = 60.0,
-    .zfar    = 600,
+    .zfar    = 400,
     .angle   = 5.0 //1.5 * 3.141592 // (= 270 deg)
 };
 
@@ -104,8 +104,7 @@ int process_input() {
         camera.y -= sine(camera.angle);
     }
     if(state->buttons & CONT_DPAD_LEFT){
-        camera.angle -= 0.02;
-        camera.angle = camera.angle >= 0.0 ? fmod(camera.angle, 6.28) : 6.28 - abs(fmod(camera.angle, 6.28));
+        camera.angle = camera.angle > 0.0 ? fmod(camera.angle - 0.02, 6.28) : 6.28 - abs(fmod(camera.angle, 6.28));
     }
     if(state->buttons & CONT_DPAD_RIGHT){
         camera.angle = fmod((camera.angle + 0.02), (6.28));
@@ -167,8 +166,8 @@ void update_game_state(){
             int map_offset = ((MAP_N * ((int)(ry) & (MAP_N - 1))) + ((int)(rx) & (MAP_N - 1)));
 
             // Project height values and find the height on-screen
-            // int proj_height = (int)(((float)camera.height - height_map[map_offset]) / z * SCALE_FACTOR + camera.horizon);
-            int proj_height = (int) (perspecive_divide_table[camera.height - height_map[map_offset] + 255][z] + camera.horizon);
+            int proj_height = (int)(((float)camera.height - height_map[map_offset]) / z * SCALE_FACTOR + camera.horizon);
+            // int proj_height = (int) (perspecive_divide_table[camera.height - height_map[map_offset] + 255][z] + camera.horizon);
 
             // Only draw pixels if the new projected height is taller than the previous tallest height
             if (proj_height < tallest_height) {

@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <kos.h>
 
+
 //MACROS
 #define SCREEN_WIDTH 320
 #define SCREEN_HEIGHT 320
