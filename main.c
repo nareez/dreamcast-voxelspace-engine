@@ -31,13 +31,13 @@ typedef struct {
     float zfar;      // distance of the camera looking forward
     float angle;     // camera angle (radians, clockwise)
 } camera_t;
-
+//600 is to much for this boost to 16fps
 camera_t camera = {
     .x       = 512.0,
     .y       = 512.0,
     .height  = 70.0,
     .horizon = 60.0,
-    .zfar    = 600.0,
+    .zfar    = 300.0,
     .angle   = 1.5 * 3.141592 // (= 270 deg)
 };
 
