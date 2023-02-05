@@ -76,7 +76,7 @@ void dis_flipBuffer(){
         currentBuffer = 2;
         backbuffer = framebuffer_2;
         //vid_waitvbl();
-        sq_cpy(vram_s, framebuffer_1, framebufferSize);
+        fast_cpy(vram_s, framebuffer_1, framebufferSize);
 
     } else {
         currentBuffer = 1;
