@@ -1,6 +1,9 @@
 # Voxel Space Engine for Dreamcast
 added my version of faster SQ and sh4 math header
 
+Now 16fps on hardware 
+![bandicam 2023-02-05 05-16-46-130](https://user-images.githubusercontent.com/59771322/216813317-a3fb3c31-c8cd-4324-8c95-ebef077d9653.jpg)
+
 https://user-images.githubusercontent.com/59771322/212742671-7e54db6f-d949-476f-9f84-e73b5e3623d1.mp4
 
 Dreamcast emulators are much faster then hardware examples below
