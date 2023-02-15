@@ -115,51 +115,38 @@ int processInput() {
     return 1;
 }
 
-//Update Game State
-void updateGameState(){
-    //TODO remover esses calculos da main
-    //Changes Ian micheal
-    float sh4FSCARadianSine = fsin(camera.angle);
-    float sh4FSCARadianCosine = fcos(camera.angle);
-
-    // Left-most point of the FOV
-    float plx = sh4FSCARadianCosine * camera.zfar + sh4FSCARadianSine * camera.zfar;
-    float ply = sh4FSCARadianSine * camera.zfar - sh4FSCARadianCosine * camera.zfar;
-
-    // Right-most point of the FOV
-    float prx = sh4FSCARadianCosine * camera.zfar - sh4FSCARadianSine * camera.zfar;
-    float pry = sh4FSCARadianSine * camera.zfar + sh4FSCARadianCosine * camera.zfar;
+void updateGameState() {
+    // Precompute values that are used in the loop
+    const float sh4FSCARadianSine = fsin(camera.angle);
+    const float sh4FSCARadianCosine = fcos(camera.angle);
+    const float plx = sh4FSCARadianCosine * camera.zfar + sh4FSCARadianSine * camera.zfar;
+    const float ply = sh4FSCARadianSine * camera.zfar - sh4FSCARadianCosine * camera.zfar;
+    const float prx = sh4FSCARadianCosine * camera.zfar - sh4FSCARadianSine * camera.zfar;
+    const float pry = sh4FSCARadianSine * camera.zfar + sh4FSCARadianCosine * camera.zfar;
+    const float deltax_step = (prx - plx) / SCREEN_WIDTH;
 
     // Loop 320 rays from left to right
     for (int i = 0; i < SCREEN_WIDTH; i++) {
-        float deltax = (plx + (prx - plx) / SCREEN_WIDTH * i) / camera.zfar;
-        float deltay = (ply + (pry - ply) / SCREEN_WIDTH * i) / camera.zfar;
-
-        // Ray (x,y) coords
-        float rx = camera.x;
-        float ry = camera.y;
-
-        // Store the tallest projected height per-ray
+        const float deltax = (plx + deltax_step * i) / camera.zfar;
+        const float deltay = (ply + (pry - ply) / SCREEN_WIDTH * i) / camera.zfar;
+        float rx = camera.x + deltax;
+        float ry = camera.y + deltay;
         float tallestheight = SCREEN_HEIGHT;
-        //Changes Ian micheal
-        // Loop all depth units until the zfar distance limit
-        for (int z = 1; z < camera.zfar; z++) {
-            rx += deltax;
-            ry += deltay;
 
-            int mapoffset = ((MAP_N * ((int)(ry) & (MAP_N - 1))) + ((int)(rx) & (MAP_N - 1)));
-            int projheight = (int)((camera.height - heightMap[mapoffset]) / z * SCALE_FACTOR + camera.horizon);
-            //Changes Ian micheal
+        // Loop all depth units until the zfar distance limit
+        for (int z = 1; z < camera.zfar; z += 2) {
+            const int mapoffset = ((MAP_N * ((int)(ry) & (MAP_N - 1))) + ((int)(rx) & (MAP_N - 1)));
+            const int projheight = (int)((camera.height - heightMap[mapoffset]) / z * SCALE_FACTOR + camera.horizon);
+
             if (projheight < tallestheight) {
-                int y = tallestheight - 1;
-                while (y >= projheight) {
+                for (int y = tallestheight - 1; y >= projheight; y--) {
                     DRAW_PIXEL(i, y, pixelMap[mapoffset]);
-                    y--;
                 }
                 tallestheight = projheight;
             }
 
-            z++;
+            rx += deltax;
+            ry += deltay;
         }
     }
 }
