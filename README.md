@@ -7,6 +7,11 @@ Ian micheal: Changes i made to Improve speed.
 3: Replace the inner for loop with a while loop that terminates early when the projected height falls below zero or above the screen height.
 4: I reorder the heightMap and pixelmap arrays to improve cache locality by aligning adjacent memory elements to adjacent points in the world, resulting in fewer cache misses and better performance.
 
+NOw 35fps on hardware
+
+https://user-images.githubusercontent.com/59771322/219000661-b56210d7-773c-44bd-9fbb-c9fb6fd03423.mp4
+
+
 
 Running on Dreamcast hardware now 21fps
 
