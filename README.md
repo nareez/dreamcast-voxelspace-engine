@@ -1,5 +1,33 @@
 # Voxel Space Engine for Dreamcast
+Ian micheal
+Optimizing and fixing Pvr dma rendering is now 32bit aligned and working
 added my version of faster SQ and sh4 math header
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 Now 16fps on hardware 
 ![bandicam 2023-02-05 05-16-46-130](https://user-images.githubusercontent.com/59771322/216813317-a3fb3c31-c8cd-4324-8c95-ebef077d9653.jpg)
