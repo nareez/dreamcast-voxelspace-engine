@@ -1,7 +1,19 @@
 # Voxel Space Engine for Dreamcast
-Ian micheal
-Optimizing and fixing Pvr dma rendering is now 32bit aligned and working
-added my version of faster SQ and sh4 math header
+Update to Nareez: Dreamcast port.
+
+Ian micheal: Changes i made to Improve speed.
+1: Optimizing and fixing Pvr dma rendering is now 32bit aligned and working added sh4 math header.
+2: I have been optimizing this and have fixed the 32-bit DMA rendering alignment and added SH4 math functions.
+3: Replace the inner for loop with a while loop that terminates early when the projected height falls below zero or above the screen height.
+4: I reorder the heightMap and pixelmap arrays to improve cache locality by aligning adjacent memory elements to adjacent points in the world, resulting in fewer cache misses and better performance.
+
+
+Running on Dreamcast hardware now 21fps
+
+https://user-images.githubusercontent.com/59771322/218981141-861d6ec1-e1d7-48f2-a908-7499b086ff8e.mp4
+
+
+         
 
 
 
