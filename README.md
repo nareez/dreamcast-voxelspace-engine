@@ -2,13 +2,13 @@
 Update to Nareez: Dreamcast port.
 
 Ian micheal: Changes i made to Improve speed.
-1: Optimizing and fixing Pvr dma rendering is now 32bit aligned and working added sh4 math header.
-2: I have been optimizing this and have fixed the 32-bit DMA rendering alignment and added SH4 math functions.
-3: Replace the inner for loop with a while loop that terminates early when the projected height falls below zero or above the screen height.
-4: I reorder the heightMap and pixelmap arrays to improve cache locality by aligning adjacent memory elements to adjacent points in the world, resulting in fewer cache misses and better performance.
-5: Precompute values that are used in the loop, like sh4FSCARadianSine, sh4FSCARadianCosine, plx, ply, prx, and pry, instead of recomputing them in each iteration of the loop.
-6: Unroll the loop that iterates over the z variable by incrementing z by 2 in each iteration since the loop body is executed twice for each value of z.
-7: Compute the rx and ry variables outside the loop that iterates over z and increment them inside the loop instead of recomputing them in each iteration of the loop. This eliminates one multiplication and one addition per iteration of the z loop.
+*1: Optimizing and fixing Pvr dma rendering is now 32bit aligned and working added sh4 math header.
+*2: I have been optimizing this and have fixed the 32-bit DMA rendering alignment and added SH4 math functions.
+*3: Replace the inner for loop with a while loop that terminates early when the projected height falls below zero or above the screen height.
+*4: I reorder the heightMap and pixelmap arrays to improve cache locality by aligning adjacent memory elements to adjacent points in the world, resulting in fewer cache misses and better performance.
+*5: Precompute values that are used in the loop, like sh4FSCARadianSine, sh4FSCARadianCosine, plx, ply, prx, and pry, instead of recomputing them in each iteration of the loop.
+*6: Unroll the loop that iterates over the z variable by incrementing z by 2 in each iteration since the loop body is executed twice for each value of z.
+*7: Compute the rx and ry variables outside the loop that iterates over z and increment them inside the loop instead of recomputing them in each iteration of the loop. This eliminates one multiplication and one addition per iteration of the z loop.
 
 NOw 35fps on hardware
 
@@ -21,34 +21,7 @@ Running on Dreamcast hardware now 21fps
 https://user-images.githubusercontent.com/59771322/218981141-861d6ec1-e1d7-48f2-a908-7499b086ff8e.mp4
 
 
-         
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+##HISTORY      
 Now 16fps on hardware 
 ![bandicam 2023-02-05 05-16-46-130](https://user-images.githubusercontent.com/59771322/216813317-a3fb3c31-c8cd-4324-8c95-ebef077d9653.jpg)
 
@@ -64,12 +37,6 @@ Redream faster then hardware
 Nulldc 7 fps faster then hardware
 ![nullDC_Win32_Release 2023-01-16 13-58-54-075](https://user-images.githubusercontent.com/59771322/212749305-64959318-1136-4c52-951e-a3e8a72e1da0.jpg)
 Update video
-
-
-
-
-
-
 ## TODO
 
 - [x] Develop workking code of voxel space engine for Dreamcast
@@ -94,6 +61,7 @@ Issues:
 
 ## Dreamcast development credits
 * dcemulation.org forum and wiki
+* Ian micheal Optimizing and code fixing  https://github.com/ianmicheal/
 * KallistiOS https://github.com/KallistiOS/KallistiOS
 * Krejlooc tutorial on https://www.neogaf.com/threads/lets-build-a-sega-dreamcast-game-from-scratch-breakout.916501/
 * Nold360's docker Dreamcast SDK for GCC 5 https://github.com/Nold360/docker-kallistios-sdk
