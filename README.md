@@ -6,6 +6,9 @@ Ian micheal: Changes i made to Improve speed.
 2: I have been optimizing this and have fixed the 32-bit DMA rendering alignment and added SH4 math functions.
 3: Replace the inner for loop with a while loop that terminates early when the projected height falls below zero or above the screen height.
 4: I reorder the heightMap and pixelmap arrays to improve cache locality by aligning adjacent memory elements to adjacent points in the world, resulting in fewer cache misses and better performance.
+5: Precompute values that are used in the loop, like sh4FSCARadianSine, sh4FSCARadianCosine, plx, ply, prx, and pry, instead of recomputing them in each iteration of the loop.
+6: Unroll the loop that iterates over the z variable by incrementing z by 2 in each iteration since the loop body is executed twice for each value of z.
+7: Compute the rx and ry variables outside the loop that iterates over z and increment them inside the loop instead of recomputing them in each iteration of the loop. This eliminates one multiplication and one addition per iteration of the z loop.
 
 NOw 35fps on hardware
 
