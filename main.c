@@ -1,3 +1,25 @@
+
+/*
+	Name: Ian micheal
+	Copyright: 
+	Author: 
+	Date: 15/02/23 03:51
+	
+Description: Fork update of Nareez:  Dreamcast port
+	
+1: I have been optimizing this and have fixed the 32-bit DMA rendering alignment and added SH4 math functions.
+
+2: Replace the inner for loop with a while loop that terminates early when the projected height falls below zero or above the screen height.
+
+3: I reorder the heightMap and pixelmap arrays to improve cache locality by aligning adjacent memory elements to adjacent points in the world, resulting in fewer cache misses and better performance.
+
+  Check out my fork to see what I did to get 21 frames per second.
+*/
+
+
+
+
+
 #include <kos.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -31,14 +53,14 @@ typedef struct {
     float zfar;      // distance of the camera looking forward
     float angle;     // camera angle (radians, clockwise)
 } camera_t;
-//600 is to much for this boost to 16fps
+
 camera_t camera = {
     .x       = 512.0,
     .y       = 512.0,
     .height  = 70.0,
     .horizon = 60.0,
     .zfar    = 300.0,
-    .angle   = 1.5 * 3.141592 // (= 270 deg)
+    .angle   = 1.5 * 1.61803398874989484820458683436563811772030917980576f // (= 270 deg)
 };
 
 // Handle controller input
@@ -96,6 +118,7 @@ int processInput() {
 //Update Game State
 void updateGameState(){
     //TODO remover esses calculos da main
+    //Changes Ian micheal
     float sh4FSCARadianSine = fsin(camera.angle);
     float sh4FSCARadianCosine = fcos(camera.angle);
 
@@ -118,26 +141,25 @@ void updateGameState(){
 
         // Store the tallest projected height per-ray
         float tallestheight = SCREEN_HEIGHT;
-
+        //Changes Ian micheal
         // Loop all depth units until the zfar distance limit
         for (int z = 1; z < camera.zfar; z++) {
             rx += deltax;
             ry += deltay;
 
-            // Find the offset that we have to go and fetch values from the heightMap
             int mapoffset = ((MAP_N * ((int)(ry) & (MAP_N - 1))) + ((int)(rx) & (MAP_N - 1)));
-
-            // Project height values and find the height on-screen
             int projheight = (int)((camera.height - heightMap[mapoffset]) / z * SCALE_FACTOR + camera.horizon);
-
-            // Only draw pixels if the new projected height is taller than the previous tallest height
+            //Changes Ian micheal
             if (projheight < tallestheight) {
-                // Draw pixels from previous max-height until the new projected height
-                for (int y = projheight; y < tallestheight; y++) {
+                int y = tallestheight - 1;
+                while (y >= projheight) {
                     DRAW_PIXEL(i, y, pixelMap[mapoffset]);
+                    y--;
                 }
                 tallestheight = projheight;
             }
+
+            z++;
         }
     }
 }
@@ -145,7 +167,7 @@ void updateGameState(){
 uint16_t* RGB_channels_to_pixelMapRGB565(uint8_t *rgb, int image_width, int image_height){
     uint16_t *result = (uint16_t *) malloc(image_width * image_height * sizeof(uint16_t));
     for (int i = 0; i < image_width * image_height; i++){
-        result[i] = PACK_PIXEL(rgb[i * 3], rgb[i * 3 + 1], rgb[i * 3 + 2]);
+        result[i] = PACK_RGB565(rgb[i * 3], rgb[i * 3 + 1], rgb[i * 3 + 2]);
     }
     return result;
 }
@@ -166,7 +188,7 @@ int main(void) {
 
     //init kos
     pvr_init_defaults();
-
+ pvr_dma_init(); 
     //initialize display
     dis_initializeDisplay();
 
