@@ -1,9 +1,7 @@
 
 /*
-	Name: Ian micheal
-	Copyright: 
-	Author: 
-	Date: 15/02/23 03:51
+Name: Ian micheal
+Date: 15/02/23 03:51
 	
 Description: Fork update of Nareez:  Dreamcast port
 *1 Optimizing and fixing Pvr dma rendering is now 32bit aligned and working added sh4 math header.
@@ -16,7 +14,7 @@ instead of recomputing them in each iteration of the loop.
 *6 Unroll the loop that iterates over the z variable by incrementing z by 2 in each iteration since the loop body is executed twice for each value of z.
 *7 Compute the rx and ry variables outside the loop that iterates over z and increment them inside the loop instead of recomputing them in each iteration of the loop. This eliminates one multiplication and one addition per iteration of the z loop.
 
-NOW 35fps on hardware Only at some angles 
+NOW 35 frames per second on hardware only at some angles
 */
 
 
@@ -35,7 +33,7 @@ NOW 35fps on hardware Only at some angles
 
 //TODO list
 //Implement delta time
-//Fix gif.h unaligned memory access
+
 
 //Constants
 #define MAP_N 1024
