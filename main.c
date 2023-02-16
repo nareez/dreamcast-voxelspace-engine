@@ -7,20 +7,16 @@
 	
 Description: Fork update of Nareez:  Dreamcast port
 *1 Optimizing and fixing Pvr dma rendering is now 32bit aligned and working added sh4 math header.
-
 *2 I have been optimizing this and have fixed the 32-bit DMA rendering alignment and added SH4 math functions.
-
 *3 Replace the inner for loop with a while loop that terminates early when the projected height falls below zero or above the screen height.
-
-*4 I reorder the heightMap and pixelmap arrays to improve cache locality by aligning adjacent memory elements to adjacent points in the world, resulting in fewer cache misses and better performance.
-
-*5 Precompute values that are used in the loop, like sh4FSCARadianSine, sh4FSCARadianCosine, plx, ply, prx, and pry, instead of recomputing them in each iteration of the loop.
-
+*4 I reorder the heightMap and pixelmap arrays to improve cache locality by aligning adjacent memory elements to adjacent points in the world, 
+resulting in fewer cache misses and better performance.
+*5 Precompute values that are used in the loop, like sh4FSCARadianSine, sh4FSCARadianCosine, plx, ply, prx, and pry, 
+instead of recomputing them in each iteration of the loop.
 *6 Unroll the loop that iterates over the z variable by incrementing z by 2 in each iteration since the loop body is executed twice for each value of z.
-
 *7 Compute the rx and ry variables outside the loop that iterates over z and increment them inside the loop instead of recomputing them in each iteration of the loop. This eliminates one multiplication and one addition per iteration of the z loop.
 
-NOw 35fps on hardware
+NOW 35fps on hardware Only at some angles 
 */
 
 
@@ -70,55 +66,50 @@ camera_t camera = {
     .angle   = 1.5 * 1.61803398874989484820458683436563811772030917980576f // (= 270 deg)
 };
 
-// Handle controller input
+/* 
+	Author: Ian micheal 
+	Date: 16/02/23 06:05
+	Description:
+	This optimized version of the Input function reduces the number of calculations and uses bit manipulation to check for button presses.
+	It combines the A/Y and B/X button checks, simplifies the D-pad checks, and groups the trigger button checks together for improved readability.
+	 
+*/
+
 int processInput() {
     maple_device_t *cont;
     cont_state_t *state;
     
     cont = maple_enum_type(0, MAPLE_FUNC_CONTROLLER);
 
-    /* Check key status */
     state = (cont_state_t *)maple_dev_status(cont);
-
-    if(!state) {
+    if (!state) {
         printf("Error reading controller\n");
         return -1;
     }
-    if(state->buttons & CONT_START){
+    
+    // Check for start button
+    if (state->buttons & CONT_START) {
         return 0;
     }
-    if(state->buttons & CONT_A){
-        camera.height--;
-    }
-    if(state->buttons & CONT_B){
-        camera.horizon += 1.5;
-    }
-    if((state->buttons & CONT_X)) {
-        camera.horizon -= 1.5;
-    }
-    if((state->buttons & CONT_Y)) {
-        camera.height++;
-    }
-    if(state->buttons & CONT_DPAD_UP){
+    
+    // Check for other buttons and update camera settings accordingly
+    int buttons = state->buttons;
+    camera.height += (buttons & CONT_A) ? -1 : ((buttons & CONT_Y) ? 1 : 0);
+    camera.horizon += (buttons & CONT_B) ? 1.5 : ((buttons & CONT_X) ? -1.5 : 0);
+    camera.angle += (buttons & CONT_DPAD_LEFT) ? -0.02 : ((buttons & CONT_DPAD_RIGHT) ? 0.02 : 0);
+    if (buttons & CONT_DPAD_UP) {
         camera.x += fcos(camera.angle);
         camera.y += fsin(camera.angle);
-    }
-    if(state->buttons & CONT_DPAD_DOWN){
+    } else if (buttons & CONT_DPAD_DOWN) {
         camera.x -= fcos(camera.angle);
         camera.y -= fsin(camera.angle);
     }
-    if(state->buttons & CONT_DPAD_LEFT){
-        camera.angle -= 0.02;
-    }
-    if(state->buttons & CONT_DPAD_RIGHT){
-        camera.angle += 0.02;
-    }
-    if(state->ltrig)
+    
+    // Check for trigger buttons
+    if (state->ltrig || state->rtrig) {
         return 0;
-
-    if(state->rtrig)
-        return 0;
-
+    }
+    
     return 1;
 }
 
