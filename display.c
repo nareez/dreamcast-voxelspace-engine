@@ -29,46 +29,6 @@ void dis_initializeDisplay(){
     dis_initializeDoublebuffer();
 }
 
-/* n must be multiple of 64 */
-void fast_cpy(void *dest, void *src, int n)
-{
-
-  uint32 *sq;
-  uint32 *d, *s;
-
-  d = (uint32 *)(0xe0000000 | (((uint32)dest) & 0x03ffffe0));
-  s = (uint32 *)(src);
-
-
-  *((volatile unsigned int*)0xFF000038) = ((((uint32)dest)>>26)<<2)&0x1c;
-  *((volatile unsigned int*)0xFF00003C) = ((((uint32)dest)>>26)<<2)&0x1c;
-
-  n >>= 6;
-  while (n--)
-  {
-    // sq0
-    sq = d;
-    *sq++ = *s++; *sq++ = *s++;
-    *sq++ = *s++; *sq++ = *s++;
-    *sq++ = *s++; *sq++ = *s++;
-    *sq++ = *s++; *sq++ = *s++;
-      __asm__("pref @%0" : : "r" (d));
-    d += 8;
-
-    // sq1
-    sq = d;
-    *sq++ = *s++; *sq++ = *s++;
-    *sq++ = *s++; *sq++ = *s++;
-    *sq++ = *s++; *sq++ = *s++;
-    *sq++ = *s++; *sq++ = *s++;
-      __asm__("pref @%0" : : "r" (d));
-    d += 8;
-  }
-
-  *((uint32 *)(0xe0000000)) = 0;
-  *((uint32 *)(0xe0000020)) = 0;
-
-}
 
 
 //flip double buffer
