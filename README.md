@@ -1,26 +1,11 @@
 # Voxel Space Engine for Dreamcast
 
-## TODO
-
-- [x] Develop workking code of voxel space engine for Dreamcast
-- [x] FPS Count
-- [x] Cleanup code
-- [ ] Better Performance
-- [ ] Collision
-- [ ] Fog Effect
-- [ ] Delta time
-
-Issues:
-- [x] Screen tearing and flickering - Solution: Develop Double Buffering
-- [x] Slow RAM to VRAM data transfer - Solution: Transfer framebuffer data thru store queue copy
-- [x] Ugly surface colors - Solution: Increase brightness
-- [x] Non aligned memory not allowing to run on real hardware
-
 ## Credits
 * Pikuma's implementation https://github.com/gustavopezzi/voxelspace
 * s-macke's implementation https://github.com/s-macke/VoxelSpace
 
 ## Dreamcast development credits
+* Ian micheal Optimizing and code fixing https://github.com/ianmicheal/
 * dcemulation.org forum and wiki
 * KallistiOS https://github.com/KallistiOS/KallistiOS
 * Krejlooc tutorial on https://www.neogaf.com/threads/lets-build-a-sega-dreamcast-game-from-scratch-breakout.916501/
