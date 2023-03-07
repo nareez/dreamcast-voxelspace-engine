@@ -6,11 +6,6 @@
 #include "display.h"
 #include "load_map.h"
 
-//TODO list
-//Implement delta time
-//Change all int to _t
-//use SH4 fast math
-
 //Constants
 #define MAP_N 1024
 #define SCALE_FACTOR 70.0
@@ -35,32 +30,9 @@ camera_t camera = {
     .y       = 512.0,
     .height  = 70,
     .horizon = 60.0,
-    .zfar    = 400,
+    .zfar    = 300,
     .angle   = 5.0 //1.5 * 3.141592 // (= 270 deg)
 };
-
-//TODO bug do sin(0);
-float sintab[314];
-void init_sintab(){
-    for (int i = 0; i <= 628; i+=2){
-        sintab[i/2] = sin(i/100.0);
-    }
-}
-
-float sine(float angle){
-    return sintab[(int)(angle*100.0/2.0)];
-}
-
-float costab[314];
-void init_costab(){
-    for (int i = 0; i <= 628; i+=2){
-        costab[i/2] = cos(i/100.0);
-    }
-}
-
-float cosine(float angle){
-    return costab[(int)(angle*100.0/2.0)];
-}
 
 // Handle controller input
 int process_input() {
@@ -71,112 +43,103 @@ int process_input() {
 
     // Check key status
     state = (cont_state_t *)maple_dev_status(cont);
+    int buttons = state->buttons;
 
     if(!state) {
         printf("Error reading controller\n");
         return -1;
     }
-    if(state->buttons & CONT_START){
+    if(buttons & CONT_START){
         return 0;
     }
-    if(state->buttons & CONT_A){
-        if(camera.height > 10){
-            camera.height--;
-        }
+
+    camera.height += (buttons & CONT_A) ? -1 : ((buttons & CONT_Y) ? 1 : 0);
+    camera.horizon += (buttons & CONT_B) ? 1.5 : ((buttons & CONT_X) ? -1.5 : 0);
+    camera.angle += (buttons & CONT_DPAD_LEFT) ? -0.02 : ((buttons & CONT_DPAD_RIGHT) ? 0.02 : 0);
+
+    if(buttons & CONT_DPAD_UP){
+        camera.x += fcos(camera.angle);
+        camera.y += fsin(camera.angle);
+    } else if(buttons & CONT_DPAD_DOWN){
+        camera.x -= fcos(camera.angle);
+        camera.y -= fsin(camera.angle);
     }
-    if(state->buttons & CONT_B){
-        camera.horizon += 1.5;
-    }
-    if((state->buttons & CONT_X)) {
-        camera.horizon -= 1.5;
-    }
-    if((state->buttons & CONT_Y)) {
-        if(camera.height < 110){
-            camera.height++;
-        }
-    }
-    if(state->buttons & CONT_DPAD_UP){
-        camera.x += cosine(camera.angle);
-        camera.y += sine(camera.angle);
-    }
-    if(state->buttons & CONT_DPAD_DOWN){
-        camera.x -= cosine(camera.angle);
-        camera.y -= sine(camera.angle);
-    }
-    if(state->buttons & CONT_DPAD_LEFT){
-        camera.angle = camera.angle > 0.0 ? fmod(camera.angle - 0.02, 6.28) : 6.28 - abs(fmod(camera.angle, 6.28));
-    }
-    if(state->buttons & CONT_DPAD_RIGHT){
-        camera.angle = fmod((camera.angle + 0.02), (6.28));
-    }
-    if(state->ltrig){
-        return 0;
-    }
-    if(state->rtrig){
-        return 0;
-    }
+    // if(state->ltrig){
+    //     return 0;
+    // }
+    // if(state->rtrig){
+    //     return 0;
+    // }
     return 1;
-}
-
-float perspecive_divide_table[512][600];
-void init_perspecive_divide_table(){
-    for(int i = -255; i < 255; i++){
-        for(int j = 0; j < 600; j++){
-            perspecive_divide_table[i + 255][j] = i / (float)j  * SCALE_FACTOR;
-        }
-    }
-}
-
-float perspecive_divide(int16_t height, uint16_t zfar){
-    return perspecive_divide_table[height + 255][zfar];
 }
 
 //Update Game State
 void update_game_state(){
-    //TODO remover esses calculos da main
-    float sin_angle = sine(camera.angle);
-    float cos_angle = cosine(camera.angle);
+
+    const float sin_angle = fsin(camera.angle);
+    const float cos_angle = fcos(camera.angle);
 
     // Left-most point of the FOV
-    float plx = cos_angle * camera.zfar + sin_angle * camera.zfar;
-    float ply = sin_angle * camera.zfar - cos_angle * camera.zfar;
+    const float plx = cos_angle * camera.zfar + sin_angle * camera.zfar;
+    const float ply = sin_angle * camera.zfar - cos_angle * camera.zfar;
 
     // Right-most point of the FOV
-    float prx = cos_angle * camera.zfar - sin_angle * camera.zfar;
-    float pry = sin_angle * camera.zfar + cos_angle * camera.zfar;
+    const float prx = cos_angle * camera.zfar - sin_angle * camera.zfar;
+    const float pry = sin_angle * camera.zfar + cos_angle * camera.zfar;
+    
+    //
+    const float deltax_step = (prx - plx) / SCREEN_WIDTH;
+    const float deltay_step = (pry - ply) / SCREEN_WIDTH;
 
     // Loop SCREEN_WIDTH rays from left to right
     for (int i = 0; i < SCREEN_WIDTH; i++) {
-        float delta_x = (plx + (prx - plx) / SCREEN_WIDTH * i) / camera.zfar;
-        float delta_y = (ply + (pry - ply) / SCREEN_WIDTH * i) / camera.zfar;
+        const float delta_x = (plx + deltax_step * i) / camera.zfar;
+        const float delta_y = (ply + deltay_step * i) / camera.zfar;
 
         // Ray (x,y) coords
-        float rx = camera.x;
-        float ry = camera.y;
+        float rx = camera.x + delta_x;
+        float ry = camera.y + delta_y;
 
         // Store the tallest projected height per-ray
         float tallest_height = SCREEN_HEIGHT;
 
         // Loop all depth units until the zfar distance limit
-        for (int z = 1; z < camera.zfar; z++) {
-            rx += delta_x;
-            ry += delta_y;
-
+        for (int z = 1; z < camera.zfar; z+=2) {
             // Find the offset that we have to go and fetch values from the height_map
             int map_offset = ((MAP_N * ((int)(ry) & (MAP_N - 1))) + ((int)(rx) & (MAP_N - 1)));
 
             // Project height values and find the height on-screen
             int proj_height = (int)(((float)camera.height - height_map[map_offset]) / z * SCALE_FACTOR + camera.horizon);
-            // int proj_height = (int) (perspecive_divide_table[camera.height - height_map[map_offset] + 255][z] + camera.horizon);
-
+ 
             // Only draw pixels if the new projected height is taller than the previous tallest height
             if (proj_height < tallest_height) {
                 // Draw pixels from previous max-height until the new projected height
-                for (int y = proj_height; y < tallest_height; y++) {
+                for (int y = tallest_height - 1; y >= proj_height; y--) {
                     DRAW_PIXEL(i, y, texture_map[map_offset]);
                 }
                 tallest_height = proj_height;
             }
+
+            rx += delta_x;
+            ry += delta_y;
+
+            // Find the offset that we have to go and fetch values from the height_map
+            map_offset = ((MAP_N * ((int)(ry) & (MAP_N - 1))) + ((int)(rx) & (MAP_N - 1)));
+
+            // Project height values and find the height on-screen
+            proj_height = (int)(((float)camera.height - height_map[map_offset]) / (z+1) * SCALE_FACTOR + camera.horizon);
+ 
+            // Only draw pixels if the new projected height is taller than the previous tallest height
+            if (proj_height < tallest_height) {
+                // Draw pixels from previous max-height until the new projected height
+                for (int y = tallest_height - 1; y >= proj_height; y--) {
+                    DRAW_PIXEL(i, y, texture_map[map_offset]);
+                }
+                tallest_height = proj_height;
+            }
+
+            rx += delta_x;
+            ry += delta_y;
         }
     }
 }
@@ -185,7 +148,7 @@ char screen_text[20];
 void render(){
     bfont_draw_str(backbuffer, SCREEN_WIDTH, 0, screen_text);
     display_flip_framebuffer();
-    display_clear_backbuffer(0, 0x82, 0xFF);
+    display_clear_framebuffer(0, 0x82, 0xFF);
 }
 
 /* romdisk */
@@ -195,15 +158,8 @@ KOS_INIT_ROMDISK(romdisk_boot);
 int main(void) {
     int quit = 0;
 
-    //init kos
-    pvr_init_defaults();
-
     //initialize display
     display_initialize();
-
-    init_sintab();
-    init_costab();
-    init_perspecive_divide_table();
 
     //initialize level
     texture_map = loadmap_get_texture(0);

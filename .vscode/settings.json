@@ -23,6 +23,11 @@
         "limits": "c",
         "ratio": "c",
         "algorithm": "c",
-        "complex": "c"
+        "complex": "c",
+        "__availability": "c",
+        "__split_buffer": "c",
+        "bitset": "c",
+        "iterator": "c",
+        "memory": "c"
     }
 }
